@@ -169,4 +169,187 @@ Kesimpulan
 ----
 Kesimpulannya terdapat perbedaan antara rata-rata saham bandung dengan rata-rata saham bali.
 
+## Soal 4
+**(Anova satu arah)** Seorang Peneliti sedang meneliti spesies dari kucing di ITS . Dalam penelitiannya ia mengumpulkan data  tiga spesies kucing yaitu kucing oren, kucing hitam dan kucing putih dengan panjangnya masing-masing. 
+Jika : 
+* diketahui dataset  https://intip.in/datasetprobstat1 
+* H0 : Tidak ada perbedaan panjang antara ketiga spesies atau rata-rata panjangnya sama  
+Maka buatlah : 
+---------------------------------------------------------------------------------------------------------------------
+### a) 
+Buatlah masing masing jenis spesies menjadi  3 subjek "Grup" (grup 1,grup 2,grup 3). Lalu Gambarkan plot kuantil normal untuk setiap kelompok dan lihat apakah ada outlier utama dalam homogenitas varians.
+----
+Karena setiap **grup nya berdistribusi normal maka tidak ada outlier utama.** Untuk membuat grup tiap jenis nya, bisa menggunakan factor kemudian memberikan label dan subset setiap grup. Group1 adalah kucing oren, Group2 adalah kucing hitam dan Group3 adalah kucing putih.
 
+
+```R
+ANOVA4 = read.table("onewayanova.txt",h=T)
+ANOVA4    
+
+# set group ->  Faktor
+ANOVA4$Group <- as.factor(ANOVA4$Group)
+
+# labelling
+ANOVA4$Group = factor(ANOVA4$Group,labels = c("kucing oren", "kucing hitam", "kucing putih"))
+
+Group1 <- subset(ANOVA4, Group == "kucing oren")
+Group2 <- subset(ANOVA4, Group == "kucing hitam")
+Group3 <- subset(ANOVA4, Group == "kucing putih")
+```
+
+kemudian digambarkan plot kuantil normal pada tiap grup
+
+```R
+qqnorm(Group1$Length)
+qqline(Group1$Length)
+```
+![QQPlot1](https://user-images.githubusercontent.com/86884506/206993020-19f1ac90-ffa9-438b-b6f1-cc08949a6df2.png)
+
+```R
+qqnorm(Group2$Length)
+qqline(Group2$Length)
+```
+![QQ plot 2](https://user-images.githubusercontent.com/86884506/206993158-90d22b2b-fef4-441e-a2fe-114a78e4a0de.png)
+
+```R
+qqnorm(Group3$Length)
+qqline(Group3$Length)
+```
+![QQ plot 3](https://user-images.githubusercontent.com/86884506/206993245-73fce8d6-4a9e-4d06-bd0e-5a630a1c1d24.png)
+  
+### b)
+carilah atau periksalah Homogeneity of variances nya , Berapa nilai p yang didapatkan? , Apa hipotesis dan kesimpulan yang dapat diambil ?
+----
+Homogenity of Variances dapat dicek dengan fungsi berikut : 
+```R
+bartlett.test(Length ~ Group, data = ANOVA4)
+```
+![image](https://user-images.githubusercontent.com/86884506/206993877-3a7baf93-a330-417c-a2ca-e0b413c5c60e.png)
+
+Didapatkan p-value sebesar 0.8054, p-value berada diatas 0.05 yang artinya varians dari ketiga kelompok sama dan kesimpulannya terdapat homogenitas varians untuk melakukan anova satu arah (one way).
+
+### c)
+Untuk uji ANOVA, buatlah model linier dengan Panjang versus Grup dan beri nama model tersebut model 1.
+----
+```R
+model1 = lm(Length ~ Group, data = ANOVA4)
+anova(model1)
+```
+![image](https://user-images.githubusercontent.com/86884506/206995142-5bbbed2c-4832-4d43-bb1f-d25a3a1232e7.png)
+
+### d)
+Dari Hasil Poin C , Berapakah nilai-p ? ,  Apa yang dapat Anda simpulkan dari H0?
+----
+Didapatkan p adalah 0.0013, yang berarti nilai P-value lebih kecil dari 0.05. Kesimpulannya kita menolak null hypotesis (H0), maka menunjukkan adanya perbedaan panjang antara ketiga spesies atau rata-rata panjangnya sama.
+
+### e) 
+Verifikasilah jawaban model 1 dengan Post-hooc test TukeyHSD ,  dari nilai p yang didapatkan apakah satu jenis kucing lebih panjang dari yang lain? Jelaskan.
+----
+```R
+TukeyHSD(aov(model1))
+```
+![image](https://user-images.githubusercontent.com/86884506/206995818-4cd69572-7d6d-4258-97ef-1693c878a8d1.png)
+
+Dari hasil diatas dapat diketahui p-value tiap 2 jenis grup. Jika p-value lebih kecil dari 0.05, maka panjang kedua grup berbeda, jika p-value lebih dari 0.05 maka panjangnya sama. Maka berdasarkan hasil diatas dapat disimpulkan kucing putih dan kucing oren memiliki ukuran atau panjang yang sama.
+
+
+### f) 
+Visualisasikan data dengan ggplot2
+----
+```R
+#import library ggplot
+library("ggplot2")
+ggplot(ANOVA4, aes(x = Group, y = Length)) +
+geom_boxplot(color = c("#00AFBB", "#E7B800", "#FC4E07"), fill = "green") +
+scale_x_discrete() + xlab("Group") + ylab("Length (cm)")
+```
+
+
+## Soal 5
+**(Anova dua arah)** Data yang digunakan merupakan hasil eksperimen yang dilakukan untuk mengetahui pengaruh suhu operasi (100˚C, 125˚C dan 150˚C) dan tiga jenis kaca pelat muka (A, B dan C) pada keluaran cahaya tabung osiloskop. Percobaan dilakukan sebanyak 27 kali dan didapat data sebagai berikut: Data Hasil Eksperimen. Dengan data tersebut: 
+---------------------------------------------------------------------------------------------------------------------
+### a)
+Buatlah plot sederhana untuk visualisasi data 
+----
+digunakan beberapa library untuk membaca file csv
+```R
+install.packages("multcompView")
+library(readr)
+library(ggplot2)
+library(multcompView)
+library(dplyr)
+```
+
+input dataset soal
+```R
+GlassData = read_csv("GTL.csv")
+head(GlassData)
+```
+![image](https://user-images.githubusercontent.com/86884506/207001312-4af3848b-7225-4a5f-a112-688d0abf8e11.png)
+
+Observasi struktur dataset
+```R
+str(GlassData)
+```
+![image](https://user-images.githubusercontent.com/86884506/207001621-d3a42f6e-abd5-4ad0-8b0d-10f84a321c41.png)
+
+Plotting tabel 
+```R
+qplot(x = Temp, y = Light, geom = "point", data = GTL) + 
+  facet_grid(.~Glass, labeller = label_both)
+```
+
+  ![Plot 5](https://user-images.githubusercontent.com/86884506/207002038-258ae9c8-2528-4ea6-914f-db1fa0bf17a4.png)
+
+### b)
+Lakukan uji ANOVA dua arah untuk 2 faktor
+----
+```
+GlassData$Glass = as.factor(GlassData$Glass)
+GlassData$Temp = as.factor(GlassData$Temp)
+
+anova = aov(Light ~ Glass*Temp, data = GlassData)
+summary(anova)
+```
+![image](https://user-images.githubusercontent.com/86884506/207002695-1dec9b10-cf4b-43c3-b036-5a2d9f3c4cff.png)
+
+### c)
+Tampilkan tabel dengan mean dan standar deviasi keluaran cahaya untuk setiap perlakuan (kombinasi kaca pelat muka dan suhu operasi)
+----
+```R
+data_summary = group_by(GlassData, Glass, Temp) %>%
+  summarise(mean = mean(Light), sd = sd(Light)) %>%
+  arrange(desc(mean))
+print(data_summary)
+```
+![image](https://user-images.githubusercontent.com/86884506/207003526-362b7845-3c8b-4f49-a2eb-7d074eb2593e.png)
+
+### d)
+Lakukan uji Tukey
+----
+```R
+tukey = TukeyHSD(anova)
+print(tukey)
+```
+
+![image](https://user-images.githubusercontent.com/86884506/207004600-7f191f3f-c90a-42a6-a667-cc21acfcd2d7.png)
+
+![image](https://user-images.githubusercontent.com/86884506/207004697-f71c29ff-a482-4919-87cf-4dc6d9fa0af9.png)
+
+### e)
+Gunakan compact letter display untuk menunjukkan perbedaan signifikan antara uji Anova dan uji Tukey
+----
+membuat Compact Letter Display
+```R
+tukey.CLD = multcompLetters4(anova, tukey)
+print(tukey.CLD)
+```
+![image](https://user-images.githubusercontent.com/86884506/207005211-1004cc29-76fd-4e6c-b04f-e080bbc733ec.png)
+
+tambahkan Compact Letter Display ke tabel sebelumnya
+```R
+cld = as.data.frame.list(tukey.cld$`Glass:Temp_Factor`)
+dataSum$Tukey <- cld$Letters
+print(dataSum)
+```
+![image](https://user-images.githubusercontent.com/86884506/207009191-1579091d-ceb8-475f-852a-36c924810e4e.png)
